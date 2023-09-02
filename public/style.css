@@ -1,0 +1,15 @@
+/* Make the whole page black */
+body {
+    background-color: black;
+    color: white; /* Text color is set to white for visibility against the black background */
+    margin: 0;
+    font-family: Arial, sans-serif; /* Default font set to Arial */
+    overflow: hidden; /* Make the page unscrollable */
+    height: 100vh; /* Set height to viewport height */
+    width: 100vw; /* Set width to viewport width */
+}
+
+/* If you want to ensure other elements (if any) inside the body also inherit the color, you can use a wildcard */
+* {
+    color: inherit;
+}
