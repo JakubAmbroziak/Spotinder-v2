@@ -84,3 +84,60 @@ app.get('/get-token', (req, res) => {
 
     res.json({ token: accessToken });
 });
+
+let trackIds = null;
+app.get('/get-recommendation', (req, res) => {
+
+  spotifyApi.getMyTopTracks({ limit: 5 })
+  .then(data => {
+      trackIds = data.body.items.map(track => track.id);
+      
+      // Get recommendations based on these track IDs
+      return spotifyApi.getRecommendations({
+          min_energy: 0.4,
+          seed_tracks: trackIds,  // Use seed_tracks to seed with tracks
+          min_popularity: 50
+      });
+  })
+  .then(data => {
+      let recommendedTracks = data.body;
+      res.json({ recommendation: recommendedTracks });
+  })
+  .catch(err => {
+      console.log("Something went wrong!", err);
+  });
+  
+});
+
+app.post('/trackAddedToSeed', (req, res) => {
+  spotifyApi.getMyCurrentPlayingTrack()
+  .then(function(data) {
+    const trackToBeAdded = data.body.item.id;
+
+    trackIds.unshift(trackToBeAdded);
+  
+    // Trim the array to the last 10 items
+    trackIds = trackIds.slice(0, 10);
+  
+    console.log("Currently playing" + trackToBeAdded);
+    console.log("\nRecommendations " + trackIds);
+    res.status(200).send('Track added to liked list');
+    
+  }, function(err) {
+    console.error('Something went wrong!', err);
+    res.status(500).send('Failed to fetch current playing track');
+  });
+
+});
+
+app.get('/get-CurrentPlaying', (req, res) => {
+  spotifyApi.getMyCurrentPlayingTrack()
+  .then(function(data) {
+    const track = data.body.item;
+    res.json(track);
+    
+  }, function(err) {
+    console.error('Something went wrong!', err);
+    res.status(500).send('Failed to fetch current playing track');
+  });
+});
