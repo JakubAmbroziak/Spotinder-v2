@@ -102,7 +102,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             fetch('/get-recommendation')
             .then(response => response.json())
             .then(data => {
-                console.log(data.tracks); // This should now log an array of recommended track IDs.
+                console.log(data.tracks); 
                     recommendedtracks = data.tracks;
                 console.log(recommendedtracks[recommendedtracksIterator])
                 playTrack( recommendedtracks[recommendedtracksIterator]);
@@ -178,9 +178,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 }
 
 };
-$("#followArtist").click(function () {
-	loadInfo();
-}); 
+
 
 
 
