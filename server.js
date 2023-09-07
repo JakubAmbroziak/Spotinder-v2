@@ -85,7 +85,7 @@ app.get('/get-token', (req, res) => {
     res.json({ token: accessToken });
 });
 
-let trackIds = null;
+let trackIds = [];
 app.get('/get-recommendation', (req, res) => {
 
   spotifyApi.getMyTopTracks({ limit: 5 })
@@ -109,26 +109,30 @@ app.get('/get-recommendation', (req, res) => {
   
 });
 
+
 app.post('/trackAddedToSeed', (req, res) => {
   spotifyApi.getMyCurrentPlayingTrack()
   .then(function(data) {
     const trackToBeAdded = data.body.item.id;
-
+    
+    // Add the new track to the beginning of the array
     trackIds.unshift(trackToBeAdded);
-  
-    // Trim the array to the last 10 items
-    trackIds = trackIds.slice(0, 10);
-  
-    console.log("Currently playing" + trackToBeAdded);
-    console.log("\nRecommendations " + trackIds);
+
+    // Ensure that the array contains a maximum of 10 elements
+    if (trackIds.length > 10) {
+      // Remove the last element if there are more than 10
+      trackIds.pop();
+    }
+
+    console.log(trackIds);
     res.status(200).send('Track added to liked list');
     
   }, function(err) {
     console.error('Something went wrong!', err);
     res.status(500).send('Failed to fetch current playing track');
   });
-
 });
+
 
 app.get('/get-CurrentPlaying', (req, res) => {
   spotifyApi.getMyCurrentPlayingTrack()

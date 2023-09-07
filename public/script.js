@@ -16,21 +16,11 @@ fetch('/get-token')
 
 let previousCoverURL = null;
 
-async function loadInfo() {
-    try {
-        let response = await fetch('/get-CurrentPlaying');
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        let data = await response.json();
-        document.getElementById("artist").innerHTML = data.artists[0].name;
-        document.getElementById("song").innerHTML = data.name;
-        document.getElementById("cover").src = data.album.images[0].url;
-        
-        return data.album.images[0].url;  // Return the cover URL
-    } catch (error) {
-        console.error('There was a problem with the fetch operation:', error.message);
-    }
+async function loadInfo(trackInfo) {
+    let artistNames = trackInfo.artists.map(artist => artist.name).join(", ");
+    document.getElementById("artist").innerHTML = artistNames;
+    document.getElementById("song").innerHTML = trackInfo.name;
+    document.getElementById("cover").src = trackInfo.album.images[0].url;
 }
 
 
@@ -87,31 +77,32 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                     },
                     });
                 })};   
-                async function playTrack(trackID) {
+                async function playTrack(trackObject) {
+                    loadInfo(trackObject);
                     try {
                         await play({
                             playerInstance: player,
-                            spotify_uri: "spotify:track:"+ trackID,
+                            spotify_uri: trackObject.uri,
                         });
-                            startCheckingCoverChange();
+                            
                     } catch (error) {
                         console.error("Error in playTrack:", error);
                     }
                 }
+            
+                fetch('/get-recommendation')
+                .then(response => response.json())
+                .then(data => {
+                    recommendedtracks = data.recommendation.tracks; 
+                    playTrack(recommendedtracks[0]);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
 
-            fetch('/get-recommendation')
-            .then(response => response.json())
-            .then(data => {
-                console.log(data.tracks); 
-                    recommendedtracks = data.tracks;
-                console.log(recommendedtracks[recommendedtracksIterator])
-                playTrack( recommendedtracks[recommendedtracksIterator]);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+  
 
-            startCheckingCoverChange();
+
             const coverElement = document.getElementById("cover");
             let startX = 0;
 
@@ -137,8 +128,8 @@ window.onSpotifyWebPlaybackSDKReady = () => {
 
             function handleDragRight() {
                 console.log("Right");
-                recommendedtracksIterator=0;
-                
+                recommendedtracksIterator = 0;
+            
                 fetch('/trackAddedToSeed', {
                     method: 'POST'
                 })
@@ -146,22 +137,29 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                     if (!response.ok) {
                         throw new Error('Network response was not ok');
                     }
-                    return response.text();  // or .json() if you're returning JSON from the server
-                })
-                .then(data => {
-                    console.log(data);
+                    fetch('/get-recommendation')
+                    .then(response => response.json())
+                    .then(data => {
+                        //recommendedtracks = data.recommendation.tracks; 
+                        console.log(recommendedtracks)
+                        //playTrack(recommendedtracks[recommendedtracksIterator]);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                    return response.text();
                 })
                 .catch(error => {
-                    console.error('There was a problem with the fetch operation:', error.message);
+                    console.error('Error:', error);
                 });
-
             }
+            
 
             function handleDragLeft() {
                 console.log("Left");
                 recommendedtracksIterator+=1;
                 //console.log(recommendedtracksIterator);
-                playTrack(recommendedtracks[recommendedtracksIterator])                
+                playTrack(recommendedtracks[recommendedtracksIterator])          
             }
 
         });
