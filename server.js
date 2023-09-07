@@ -1,6 +1,7 @@
 const express = require('express');
 const SpotifyWebApi = require('spotify-web-api-node');
 const dotenv = require('dotenv');
+const bodyParser = require('body-parser'); 
 
 dotenv.config();
 
@@ -9,6 +10,7 @@ const PORT = 3000;
 let accessToken = null; // Store your token here. Ideally, you'd get this dynamically from your Spotify auth flow.
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.json()); // Parse JSON request bodies
 
 
 const spotifyApi = new SpotifyWebApi({
@@ -60,6 +62,15 @@ app.get('/callback', (req, res) => {
     spotifyApi.setAccessToken(accessToken);
     spotifyApi.setRefreshToken(refreshToken);
 
+    spotifyApi.getMyTopTracks({ limit: 5 })
+    .then(data => {
+      trackIds = data.body.items.map(track => track.id);
+    })
+    .catch(err => {
+      console.log("Something went wrong while fetching top tracks!", err);
+      res.status(500).send('Failed to fetch top tracks');
+    });
+
     res.redirect('/'); // redirect to the main page or wherever you want
   }).catch(error => {
     console.error('Error getting Tokens:', error);
@@ -88,16 +99,10 @@ app.get('/get-token', (req, res) => {
 let trackIds = [];
 app.get('/get-recommendation', (req, res) => {
 
-  spotifyApi.getMyTopTracks({ limit: 5 })
-  .then(data => {
-      trackIds = data.body.items.map(track => track.id);
-      
-      // Get recommendations based on these track IDs
-      return spotifyApi.getRecommendations({
+  return spotifyApi.getRecommendations({
           min_energy: 0.4,
           seed_tracks: trackIds,  // Use seed_tracks to seed with tracks
           min_popularity: 50
-      });
   })
   .then(data => {
       let recommendedTracks = data.body;
@@ -111,27 +116,30 @@ app.get('/get-recommendation', (req, res) => {
 
 
 app.post('/trackAddedToSeed', (req, res) => {
-  spotifyApi.getMyCurrentPlayingTrack()
-  .then(function(data) {
-    const trackToBeAdded = data.body.item.id;
-    
-    // Add the new track to the beginning of the array
-    trackIds.unshift(trackToBeAdded);
+  let trackToBeAddedToSeed  = req.body.currentPlayingTrackID; // Access the ID from the request body
 
-    // Ensure that the array contains a maximum of 10 elements
-    if (trackIds.length > 10) {
-      // Remove the last element if there are more than 10
-      trackIds.pop();
-    }
+  trackIds.shift(trackToBeAddedToSeed);
+  trackIds.push(trackToBeAddedToSeed);
 
-    console.log(trackIds);
-    res.status(200).send('Track added to liked list');
-    
-  }, function(err) {
-    console.error('Something went wrong!', err);
-    res.status(500).send('Failed to fetch current playing track');
+  console.log(trackIds)
+
+  return spotifyApi.getRecommendations({
+    min_energy: 0.4,
+    seed_tracks: trackIds,  // Use seed_tracks to seed with tracks
+    min_popularity: 50
+  })
+  .then(data => {
+    let recommendedTracks = data.body;
+    res.status(200).json({ recommendation: recommendedTracks });
+  })
+  .catch(err => {
+    console.log("Something went wrong!", err);
+    res.status(500).send('Failed to get recommendations');
   });
 });
+
+
+
 
 
 app.get('/get-CurrentPlaying', (req, res) => {

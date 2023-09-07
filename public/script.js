@@ -1,5 +1,6 @@
 let token = null;
 let player = null;
+let currentPlayingTrackID = null;
 
 fetch('/get-token')
     .then(response => response.json())
@@ -17,33 +18,19 @@ fetch('/get-token')
 let previousCoverURL = null;
 
 async function loadInfo(trackInfo) {
+    currentPlayingTrackID = trackInfo.id;
+    console.log(trackInfo.id);
+
     let artistNames = trackInfo.artists.map(artist => artist.name).join(", ");
     document.getElementById("artist").innerHTML = artistNames;
     document.getElementById("song").innerHTML = trackInfo.name;
     document.getElementById("cover").src = trackInfo.album.images[0].url;
+
 }
 
 
 let intervalID = null;
 
-function startCheckingCoverChange() {
-
-    
-    intervalID = setInterval(async () => {
-        let currentCoverURL = await loadInfo(); // Use loadInfo to get the current cover URL
-        //console.log("INTERVAL CHECK", currentCoverURL, previousCoverURL);
-        
-        if (previousCoverURL !== currentCoverURL) {
-            // Cover has changed
-            //console.log("Cover changed! Stopping the interval.");
-            clearInterval(intervalID);  // Stop checking
-            isChecking = false; // Reset the flag
-            // Do any other actions here
-        } else {
-            previousCoverURL = currentCoverURL;
-        }
-    }, 1000); // Check every 1 second. You can adjust this duration.
-}
 
 
 let recommendedtracks = null;
@@ -127,34 +114,35 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             });
 
             function handleDragRight() {
-                console.log("Right");
+                console.log("Right UwU");
                 recommendedtracksIterator = 0;
-            
+
                 fetch('/trackAddedToSeed', {
-                    method: 'POST'
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Set the content type to JSON
+                },
+                body: JSON.stringify({ currentPlayingTrackID }), // Send the ID in the request body
                 })
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error('Network response was not ok');
+                    throw new Error('Network response was not ok');
                     }
-                    fetch('/get-recommendation')
-                    .then(response => response.json())
-                    .then(data => {
-                        //recommendedtracks = data.recommendation.tracks; 
-                        console.log(recommendedtracks)
-                        //playTrack(recommendedtracks[recommendedtracksIterator]);
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-                    return response.text();
+                    return response.json();
+                })
+                .then(data => {
+                    recommendedtracks = data.recommendation.tracks; 
+                    playTrack(recommendedtracks[recommendedtracksIterator]) 
+                    
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
+
+                  
+
             }
             
-
             function handleDragLeft() {
                 console.log("Left");
                 recommendedtracksIterator+=1;
