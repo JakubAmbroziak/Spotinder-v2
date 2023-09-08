@@ -4,6 +4,9 @@ let player = null;
 let currentPlayingTrackID = null;
 let select;
 
+document.getElementById("artist").innerHTML = "Loading";
+document.getElementById("song").innerHTML = "Loading";
+
 fetch('/get-token')
     .then(response => response.json())
     .then(data => {
@@ -192,9 +195,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 .catch(error => {
                     console.error('Error:', error);
                 });
-
-                
-
             }
             
             function handleDragLeft() {
@@ -256,6 +256,12 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                     shakeSelect();
                 }
             });
+
+            		
+            var slider = document.getElementById("volume");
+            slider.oninput = function() {
+                player.setVolume(slider.value)
+            };
         });
  
 
