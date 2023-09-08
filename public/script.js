@@ -285,7 +285,7 @@ function shakeSelect(){
 
     setTimeout(() => {
         $('.select').toggleClass('selectAnimated');
-    }, "1000");
+    }, "500");
 }
 function addToPlaylistAnimation(){
     $('.addToPlaylist').toggleClass('addToPlaylistAnimated');

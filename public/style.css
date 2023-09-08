@@ -5,6 +5,7 @@ body {
     margin: 0;
     font-family: "Montserrat", sans-serif;
     background: #010203;
+    overflow: hidden;
   }
   .container {
     margin: auto;
@@ -15,33 +16,30 @@ body {
   .cover {
     margin: auto;
     margin-top: 5em;
-    width: 60%;
     background-size: cover;
-    justify-content: center;
-    align-items: center;
     border-radius: 30px;
     width: 450px;
     height: 450px;
-  }
-  .background-cover {
+    z-index: 999;
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
   }
-  
   .background-cover {
-    z-index: -1; /* Place it behind the cover image */
     margin: auto;
     margin-top: 5em;
     background-size: cover;
+    border-radius: 30px;
+    width: 460px;
+    height: 460px;
+    filter: blur(20px);
+  }
+  .coverContainer{
+    display: flex;
     justify-content: center;
     align-items: center;
-    border-radius: 30px;
-    width: 450px;
-    height: 450px;
-  }
+    margin-bottom: 1em;
+
+}
+  
   .song {
     color: #ffffff;
     font-size: 40px;
@@ -155,17 +153,9 @@ body {
     color: #fff;
   }
   
-  selectcontainer{
-    display: flex;
-    margin: auto;
-    width: 100%;
-    justify-content: center;
-    align-items: center;
-    margin-top: 1em;
-  }
+
   
   select {
-  
     -webkit-appearance:none;
     -moz-appearance:none;
     -ms-appearance:none;
@@ -208,7 +198,7 @@ body {
     border-radius: .25em;
     justify-content: center;
     margin: auto;
-    animation: shake 1s ease;
+    animation: shake 0.5s ease;
     box-shadow: 0 0 20px 0px #66D36E;
   }
 
