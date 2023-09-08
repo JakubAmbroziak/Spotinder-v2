@@ -1,3 +1,4 @@
+//
 let token = null;
 let player = null;
 let currentPlayingTrackID = null;
@@ -16,6 +17,16 @@ fetch('/get-token')
 });
 
 let previousCoverURL = null;
+async function toggleLiked(isLiked){
+    console.log("Followed data: ", isLiked)
+    
+	if(isLiked){
+        document.getElementById("addToLikedCircle").style.fill = "#ff6666";
+	}
+	else{
+		document.getElementById("addToLikedCircle").style.fill = "#66D36E";
+	}
+};
 
 async function loadInfo(trackInfo) {
     currentPlayingTrackID = trackInfo.id;
@@ -25,6 +36,26 @@ async function loadInfo(trackInfo) {
     document.getElementById("artist").innerHTML = artistNames;
     document.getElementById("song").innerHTML = trackInfo.name;
     document.getElementById("cover").src = trackInfo.album.images[0].url;
+
+    fetch('/isLiked', {
+        method: 'POST', // You can use POST or other HTTP methods as needed
+        headers: {
+          'Content-Type': 'application/json', // Set the content type to JSON
+      },
+      body: JSON.stringify({ currentPlayingTrackID }), // Send the ID in the request body
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json(); // If your backend returns JSON data
+      })
+      .then(data => {
+        //toggleLiked(data[0]);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
 
 }
 
@@ -53,7 +84,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                     getOAuthToken
                     }
                 }
-                }) => {
+            }) => {
                 getOAuthToken(access_token => {
                     fetch(`https://api.spotify.com/v1/me/player/play?device_id=${device_id}`, {
                     method: 'PUT',
@@ -114,7 +145,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             });
 
             function handleDragRight() {
-                console.log("Right UwU");
+                console.log("Right");
                 recommendedtracksIterator = 0;
 
                 fetch('/trackAddedToSeed', {
@@ -138,9 +169,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 .catch(error => {
                     console.error('Error:', error);
                 });
-
-                  
-
             }
             
             function handleDragLeft() {
@@ -149,7 +177,28 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 //console.log(recommendedtracksIterator);
                 playTrack(recommendedtracks[recommendedtracksIterator])          
             }
-
+            document.getElementById('addToLiked').addEventListener('click', () => {
+                // Make an HTTP request to your backend endpoint
+                fetch('/addToLiked', {
+                  method: 'POST', // You can use POST or other HTTP methods as needed
+                  headers: {
+                    'Content-Type': 'application/json', // Set the content type to JSON
+                },
+                body: JSON.stringify({ currentPlayingTrackID }), // Send the ID in the request body
+                })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                  }
+                  return response.json(); // If your backend returns JSON data
+                })
+                .then(likeStatus => {
+                    toggleLiked(likeStatus);
+                  })
+                .catch(error => {
+                  console.error('Error:', error);
+                });
+              });
         });
  
 
@@ -157,12 +206,9 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             console.log('Device ID is not ready for playback', device_id);
         });
     
-
-        
-} catch (error) {
-    console.log("Main Fail:", error.message);
-}
-
+    } catch (error) {
+        console.log("Main Fail:", error.message);
+    }
 };
 
 

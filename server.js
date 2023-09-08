@@ -153,3 +153,46 @@ app.get('/get-CurrentPlaying', (req, res) => {
     res.status(500).send('Failed to fetch current playing track');
   });
 });
+
+app.post('/addToLiked', (req, res) => {
+  let trackToBeLiked  = req.body.currentPlayingTrackID;
+  spotifyApi.containsMySavedTracks([trackToBeLiked])
+  .then(data => {
+    const trackIsInYourMusic = data.body[0];
+
+    if (trackIsInYourMusic) {
+      spotifyApi.removeFromMySavedTracks([trackToBeLiked])
+        .then(() => {
+          res.status(200).json(false);
+        })
+        .catch(err => {
+          console.error('Error removing track:', err);
+          res.status(500).send('Failed to remove track');
+        });
+    } else {
+      spotifyApi.addToMySavedTracks([trackToBeLiked])
+        .then(() => {
+          res.status(200).json(true);
+        })
+        .catch(err => {
+          console.error('Error adding track:', err);
+          res.status(500).send('Failed to add track');
+        });
+    }
+  })
+  .catch(err => {
+    console.error('Error checking track:', err);
+    res.status(500).send('Failed to check track');
+  });
+});
+
+app.post('/isLiked', (req, res) => {
+  let trackUri  = req.body.currentPlayingTrackID;
+  spotifyApi.containsMySavedTracks([trackUri])
+  .then((data) => {
+    res.status(200).json(data.body);
+  })
+  .catch((error) => {
+    console.error('Error checking if the track is liked:', error);
+  });
+});
