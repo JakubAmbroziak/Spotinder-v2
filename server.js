@@ -121,8 +121,6 @@ app.post('/trackAddedToSeed', (req, res) => {
   trackIds.shift(trackToBeAddedToSeed);
   trackIds.push(trackToBeAddedToSeed);
 
-  console.log(trackIds)
-
   return spotifyApi.getRecommendations({
     min_energy: 0.4,
     seed_tracks: trackIds,  // Use seed_tracks to seed with tracks

@@ -22,8 +22,6 @@ fetch('/get-token')
 
 let previousCoverURL = null;
 async function toggleLiked(isLiked){
-    console.log("Followed data: ", isLiked)
-    
 	if(isLiked){
         document.getElementById("addToLikedCircle").style.fill = "#ff6666";
 	}
@@ -34,7 +32,7 @@ async function toggleLiked(isLiked){
 
 async function loadInfo(trackInfo) {
     currentPlayingTrackID = trackInfo.id;
-    console.log(trackInfo.id);
+   // console.log(trackInfo.id);
 
     let artistNames = trackInfo.artists.map(artist => artist.name).join(", ");
     document.getElementById("artist").innerHTML = artistNames;
@@ -261,7 +259,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             		
             var slider = document.getElementById("volume");
             slider.oninput = function() {
-                console.log(slider.value)
+               // console.log(slider.value)
                 if(slider.value==0){
                     speakerSound.style.display = "none"; 
                 }else{
