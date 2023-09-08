@@ -40,6 +40,7 @@ async function loadInfo(trackInfo) {
     document.getElementById("artist").innerHTML = artistNames;
     document.getElementById("song").innerHTML = trackInfo.name;
     document.getElementById("cover").src = trackInfo.album.images[0].url;
+    document.getElementById("background-cover").src = trackInfo.album.images[0].url;
 
     fetch('/isLiked', {
         method: 'POST', // You can use POST or other HTTP methods as needed
@@ -260,6 +261,12 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             		
             var slider = document.getElementById("volume");
             slider.oninput = function() {
+                console.log(slider.value)
+                if(slider.value==0){
+                    speakerSound.style.display = "none"; 
+                }else{
+                    speakerSound.style.display = "block"; 
+                }
                 player.setVolume(slider.value)
             };
         });
