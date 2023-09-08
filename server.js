@@ -193,6 +193,50 @@ app.post('/isLiked', (req, res) => {
     res.status(200).json(data.body);
   })
   .catch((error) => {
-    console.error('Error checking if the track is liked:', error);
+    res.status(500).send('Failed to like status');
   });
 });
+
+let userId
+app.get('/getPlaylist', (req, res) => {
+  spotifyApi.getMe()
+  .then(data => {
+    userId = data.body.id;
+    console.log('Current user ID:', userId);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+  });
+
+  spotifyApi.getUserPlaylists()
+    .then((data) => {
+      let unfilteredPlaylists = data.body.items; 
+      let playlists = [];
+      
+      unfilteredPlaylists.forEach((playlist) => { //delete playlist which arent owned by user
+        if(userId===playlist.owner.id)
+        playlists.push(playlist);
+      });
+      res.status(200).json(playlists);
+    })
+    .catch((error) => {
+      console.error('Error getting user playlists:', error);
+      res.status(500).send('Failed to get playlists');
+    });
+});
+
+app.post('/addToPlaylist', (req, res) => {
+  let playlistId = req.body.playlistId;
+  let trackId = req.body.trackId;
+  
+  spotifyApi.addTracksToPlaylist(playlistId, ["spotify:track:" +trackId])
+  .then(data => {
+    console.log('Added track to playlist:', data.body);
+    res.status(200);
+  })
+  .catch(err => {
+    console.error('Error adding track to playlist:', err);
+    res.status(500).json({ error: 'Failed to add track to playlist' });
+  });
+});
+

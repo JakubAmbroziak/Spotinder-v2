@@ -2,6 +2,7 @@
 let token = null;
 let player = null;
 let currentPlayingTrackID = null;
+let select;
 
 fetch('/get-token')
     .then(response => response.json())
@@ -58,10 +59,25 @@ async function loadInfo(trackInfo) {
       });
 
 }
+// Function to populate the select element with playlist names
+function populateSelect(playlistArray) {
+    select = document.getElementById('playlists');
+    select.innerHTML = '';
+    const defaultOption = document.createElement('option');
+    defaultOption.value = ''; 
+    defaultOption.textContent = 'Choose a playlist';
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    select.appendChild(defaultOption);
 
+    playlistArray.forEach((playlist) => {
 
-let intervalID = null;
-
+        const option = document.createElement('option');
+        option.value = playlist.id;
+        option.text = playlist.name;
+        select.appendChild(option);
+      });
+}
 
 
 let recommendedtracks = null;
@@ -118,7 +134,14 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                     console.error('Error:', error);
                 });
 
-  
+                fetch('/getPlaylist')
+                .then(response => response.json())
+                .then(playlists => {
+                    populateSelect(playlists);
+                })
+                .catch(error => {
+                    console.error('There was an error fetching the data:', error);
+                });
 
 
             const coverElement = document.getElementById("cover");
@@ -169,6 +192,9 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 .catch(error => {
                     console.error('Error:', error);
                 });
+
+                
+
             }
             
             function handleDragLeft() {
@@ -177,6 +203,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 //console.log(recommendedtracksIterator);
                 playTrack(recommendedtracks[recommendedtracksIterator])          
             }
+
             document.getElementById('addToLiked').addEventListener('click', () => {
                 // Make an HTTP request to your backend endpoint
                 fetch('/addToLiked', {
@@ -198,7 +225,37 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 .catch(error => {
                   console.error('Error:', error);
                 });
-              });
+            });
+
+            document.getElementById('addToPlaylist').addEventListener('click', () => {
+                
+                let dataToSend = {
+                    playlistId: select.options[ select.selectedIndex ].value,
+                    trackId: currentPlayingTrackID
+                };
+
+                if(dataToSend.playlistId!==""){
+                    addToPlaylistAnimation();
+                    fetch('addToPlaylist', {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json' 
+                        },
+                        body: JSON.stringify(dataToSend) 
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                        }
+                        return response.json(); 
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }else{
+                    shakeSelect();
+                }
+            });
         });
  
 
@@ -210,10 +267,19 @@ window.onSpotifyWebPlaybackSDKReady = () => {
         console.log("Main Fail:", error.message);
     }
 };
+function shakeSelect(){
+    $('.select').toggleClass('selectAnimated');
 
+    setTimeout(() => {
+        $('.select').toggleClass('selectAnimated');
+    }, "1000");
+}
+function addToPlaylistAnimation(){
+    $('.addToPlaylist').toggleClass('addToPlaylistAnimated');
 
-
-
-
+    setTimeout(() => {
+        $('.addToPlaylist').toggleClass('addToPlaylistAnimated');
+    }, "1000");
+}
 
 
