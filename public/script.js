@@ -1,4 +1,3 @@
-//
 let token = null;
 let player = null;
 let currentPlayingTrackID = null;
@@ -54,7 +53,7 @@ async function loadInfo(trackInfo) {
         return response.json(); // If your backend returns JSON data
       })
       .then(data => {
-        //toggleLiked(data[0]);
+        toggleLiked(data[0]);
       })
       .catch(error => {
         console.error('Error:', error);
@@ -170,6 +169,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             });
 
             function handleDragRight() {
+                recoverPlayState()
                 console.log("Right");
                 recommendedtracksIterator = 0;
 
@@ -197,10 +197,25 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             }
             
             function handleDragLeft() {
+                recoverPlayState();
                 console.log("Left");
                 recommendedtracksIterator+=1;
-                //console.log(recommendedtracksIterator);
-                playTrack(recommendedtracks[recommendedtracksIterator])          
+                console.log(recommendedtracksIterator);
+                if(recommendedtracksIterator<=19){
+                    playTrack(recommendedtracks[recommendedtracksIterator])          
+                }else{
+                    fetch('/get-recommendation')
+                    .then(response => response.json())
+                    .then(data => {
+                        recommendedtracks = data.recommendation.tracks; 
+                        recommendedtracksIterator=0;
+                        console.log("newrec")
+                        playTrack(recommendedtracks[recommendedtracksIterator])  
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                }
             }
 
             document.getElementById('addToLiked').addEventListener('click', () => {
@@ -224,6 +239,17 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                 .catch(error => {
                   console.error('Error:', error);
                 });
+            });
+
+            document.getElementById('cover').addEventListener('click', () => { // not wotking
+                coverClickAnimation();
+
+                fetch('/togglePlaying')
+                .then(response => response.json())
+                .catch(error => {
+                    console.error('There was an error fetching the token:', error);
+            });
+                
             });
 
             document.getElementById('addToPlaylist').addEventListener('click', () => {
@@ -292,5 +318,13 @@ function addToPlaylistAnimation(){
         $('.addToPlaylist').toggleClass('addToPlaylistAnimated');
     }, "1000");
 }
-
+function coverClickAnimation(){
+    console.log("animationResume")
+    $('.cover').toggleClass('coverPaused');
+}
+function recoverPlayState(){
+    if ($('.cover').hasClass('coverPaused')) {
+        $('.cover').removeClass('coverPaused').addClass('cover');
+    }
+}
 
