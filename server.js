@@ -237,20 +237,3 @@ app.post('/addToPlaylist', (req, res) => {
     res.status(500).json({ error: 'Failed to add track to playlist' });
   });
 });
-
-app.get('/togglePlaying', async (req, res) => {
-  try {
-    const playbackState = await spotifyApi.getMyCurrentPlaybackState();
-
-    if (playbackState && playbackState.body && playbackState.body.is_playing) {
-      await spotifyApi.pause();
-      res.status(200).json({ message: 'Music paused' });
-    } else {
-      await spotifyApi.play();
-      res.status(200).json({ message: 'Music resumed' });
-    }
-  } catch (error) {
-    console.error('Error toggling playback:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});

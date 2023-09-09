@@ -72,7 +72,6 @@ function populateSelect(playlistArray) {
     select.appendChild(defaultOption);
 
     playlistArray.forEach((playlist) => {
-
         const option = document.createElement('option');
         option.value = playlist.id;
         option.text = playlist.name;
@@ -124,7 +123,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
                         console.error("Error in playTrack:", error);
                     }
                 }
-            
+                
                 fetch('/get-recommendation')
                 .then(response => response.json())
                 .then(data => {
@@ -169,7 +168,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             });
 
             function handleDragRight() {
-                recoverPlayState()
                 console.log("Right");
                 recommendedtracksIterator = 0;
 
@@ -197,7 +195,6 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             }
             
             function handleDragLeft() {
-                recoverPlayState();
                 console.log("Left");
                 recommendedtracksIterator+=1;
                 console.log(recommendedtracksIterator);
@@ -242,13 +239,7 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             });
 
             document.getElementById('cover').addEventListener('click', () => { // not wotking
-                coverClickAnimation();
-
-                fetch('/togglePlaying')
-                .then(response => response.json())
-                .catch(error => {
-                    console.error('There was an error fetching the token:', error);
-            });
+                player.togglePlay();
                 
             });
 
@@ -295,7 +286,14 @@ window.onSpotifyWebPlaybackSDKReady = () => {
             };
         });
  
-
+        player.addListener('player_state_changed', (state) => {
+            console.log(state)
+            if (state.paused) {
+                $('.cover').addClass('coverPaused').removeClass('cover');
+              } else {
+                $('.coverPaused').addClass('cover').removeClass('coverPaused');
+              }
+        });
         player.addListener('not_ready', ({ device_id }) => {
             console.log('Device ID is not ready for playback', device_id);
         });
@@ -318,13 +316,5 @@ function addToPlaylistAnimation(){
         $('.addToPlaylist').toggleClass('addToPlaylistAnimated');
     }, "1000");
 }
-function coverClickAnimation(){
-    console.log("animationResume")
-    $('.cover').toggleClass('coverPaused');
-}
-function recoverPlayState(){
-    if ($('.cover').hasClass('coverPaused')) {
-        $('.cover').removeClass('coverPaused').addClass('cover');
-    }
-}
+
 
